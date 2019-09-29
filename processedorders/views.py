@@ -26,22 +26,22 @@ class ProcessedOrdersView(views.APIView):
         requestBody = request.data
         print(requestBody)
         if not(requestBody is None):
-            jsonBody = json.dumps(requestBody)
             amount=requestBody['amount']
-            customerId=requestBody['customerId']
-            payload = dict(customerId=customerId)
+            customer_id=requestBody['customerId']
                 
             customerResponse = requests.post(url ="https://okerircn3m.execute-api.us-east-1.amazonaws.com/default/user8lambda", json = {
-                                                 "customerId": "A1001"})
+                                                 "customerId": customer_id})
             finalResponse=customerResponse.text
             jsonFinal=json.loads(finalResponse)
             credit= jsonFinal['credit']
         
             if(amount>credit):
+                requestBody['status']="Okay.Ready to go"
                 processedorderSerializer = ProcessedOrdersSerializer(data=requestBody)
                 print(processedorderSerializer)
                 if(processedorderSerializer.is_valid()):
                     processedorder = ProcessedOrder(**requestBody)
+                    print(processedorder)
                     ProcessedOrder.save(processedorder)
                     response = Response(processedorderSerializer.data,
                                         status=status.HTTP_200_OK)                    
@@ -51,8 +51,9 @@ class ProcessedOrdersView(views.APIView):
                         status=status.HTTP_400_BAD_REQUEST)
             else:
                 response = Response(
-                    'Error', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    'Error:Insufficient Amount ', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return response
          
+        
 
